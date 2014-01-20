@@ -1,0 +1,30 @@
+{
+  "name": "nodebb-plugin-finder",
+  "version": "0.0.0",
+  "description": "finds plugins that you can install for NodeBB",
+  "main": "library.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bdharrington7/nodebb-plugin-finder.git"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "management",
+    "finder",
+    "search"
+  ],
+  "author": "Brian Harrington <BDHarrington7@gmail.com> (http://bdharrington.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bdharrington7/nodebb-plugin-finder/issues"
+  },  
+  "dependencies": {
+    "path": "~1.1.36",
+    "mkdirp": "~0.3.0",
+    "npm-package-search": "~0.1.0"
+  }
+}
