@@ -4,11 +4,9 @@
 	"use strict";
 	var		fs = require('fs'),
 			path = require('path'),
-			mkdirp = require('mkdirp'),
-			exec = require('child_process').exec,
-			spawn = require('child_process').spawn,
-			nconf = module.parent.require('nconf'),
+			npmSearch = require('npm-package-search'),
 			winston = require('winston'),
+			socketIndex = module.parent.require('./socket.io/index'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -19,32 +17,28 @@
 		}
 	});
 
+	var finderDebug = true;
+
 	// path variables
-	var pluginsDir = path.join(nconf.get('base_dir'), "/node_modules/"), // for creating the dir
-		packageListFile = path.join(__dirname, "/npm.json"),
-		wgetUploadPath = path.join(nconf.get('upload_path'), constants.admin.route);
-
-
-	fs.exists(pluginsDir, function(exists){
-		if(!exists){
-			winston.info(constants.name + ": Plugins path doesn't exist, creating " + pluginsDir);
-			mkdirp(pluginsDir, function(err){
-				if (err){
-					console.log(constants.name + ": Error creating directory: " + err);
-				}
-				else {
-					console.log(constants.name + ": Successfully created upload directory!");
-				}
-			});
-			console.log(constants.name + ": Done!");
-		}
-		else {
-			winston.info("[plugins] " + constants.name + ": Plugins path exists");
-		}
+	var packageListFile = path.join(__dirname, "/npm.json"),
+		search = npmSearch(packageListFile),
+		query = 'nodebb-plugin-';
+		
+	socketIndex.server.sockets.on('event:finder.server.update', function (noData) { // TODO: why isn't this registered?
+		// do search, no data to handle
+		search(query, function (err, data){
+			if (err){
+				if (finderDebug) console.log ("Finder: Error: " + err);
+				socketIndex.server.sockets.emit('event:finder.client.error', err);
+				return;
+			}
+			if(finderDebug) { console.log ("server returning data"); }
+			socketIndex.server.sockets.emit('event:finder.client.update', data);
+		});
+		
 	});
 
 	var Finder = {};
-		//XRegExp = require('xregexp').XRegExp;
 
 	Finder.registerPlugin = function(custom_header, callback){
 		custom_header.plugins.push({
