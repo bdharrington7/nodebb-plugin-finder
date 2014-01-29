@@ -21,8 +21,15 @@
 
 	// path variables
 	var packageListFile = path.join(__dirname, "/npm.json"),
-		search = npmSearch(packageListFile),
-		query = 'nodebb-plugin-';
+		search = npmSearch(packageListFile, {
+			filter: function(record){  // show and save only nodebb plugins
+				if (record.name.indexOf('nodebb-plugin-') != -1){
+					return record;
+				}
+			},
+			interval: 1000 * 24 * 60 * 60 // one day
+		}),
+		query = ''; // all results
 		
 	socketIndex.server.sockets.on('event:finder.server.update', function (noData) { // TODO: why isn't this registered?
 		// do search, no data to handle
