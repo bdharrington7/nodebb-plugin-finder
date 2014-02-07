@@ -53,7 +53,7 @@
 		event.preventDefault();
 		if (finderDebug) console.log("Update button clicked");
 		// fire off an event
-		socket.emit('event:finder.server.update', {});
+		socket.emit('tools.finderUpdate', {});
 	});
 	socket.on ('event:finder.client.update', function (data){
 		// spew data here
@@ -66,5 +66,5 @@
 	});
 
 	// call the data on load
-	socket.emit('event:finder.server.update', {});
+	socket.emit('tools.finderUpdate', {});
 </script>

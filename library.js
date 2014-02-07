@@ -7,6 +7,7 @@
 			npmSearch = require('npm-package-search'),
 			winston = require('winston'),
 			socketIndex = module.parent.require('./socket.io/index'),
+			toolsSockets = module.parent.require('./socket.io/tools'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -17,7 +18,7 @@
 		}
 	});
 
-	var finderDebug = true;
+	var debug = process.env.NODE_ENV == 'development';
 
 	// path variables
 	var packageListFile = path.join(__dirname, "/npm.json"),
@@ -31,19 +32,42 @@
 		}),
 		query = ''; // all results
 		
-	socketIndex.server.sockets.on('event:finder.server.update', function (noData) { // TODO: why isn't this registered?
+	// socketIndex.server.sockets.on('event:finder.server.update', function (noData) { // TODO: why isn't this registered?
+	// 	// do search, no data to handle
+	// 	search(query, function (err, data){
+	// 		if (err){
+	// 			if (debug) console.log ("Finder: Error: " + err);
+	// 			socketIndex.server.sockets.emit('event:finder.client.error', err);
+	// 			return;
+	// 		}
+	// 		if(debug) { console.log ("server returning data"); }
+	// 		socketIndex.server.sockets.emit('event:finder.client.update', data);
+	// 	});
+		
+	// });
+
+	// socketIndex.server.sockets.on('event:finder.debug', function(data){
+	// 	console.log(data);
+	// 	console.log("pong");
+	// });
+
+	// message listener for the server
+	toolsSockets.finderUpdate = function(socket, data, options){ 
 		// do search, no data to handle
 		search(query, function (err, data){
 			if (err){
-				if (finderDebug) console.log ("Finder: Error: " + err);
+				if (debug) {
+					winston.error("Finder: Error: " + err);
+				}
 				socketIndex.server.sockets.emit('event:finder.client.error', err);
 				return;
 			}
-			if(finderDebug) { console.log ("server returning data"); }
+			if(debug) { 
+				winston.info("Finder: server returning data"); 
+			}
 			socketIndex.server.sockets.emit('event:finder.client.update', data);
 		});
-		
-	});
+	}
 
 	var Finder = {};
 
