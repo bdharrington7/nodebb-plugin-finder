@@ -8,6 +8,7 @@
 			winston = require('winston'),
 			socketIndex = module.parent.require('./socket.io/index'),
 			toolsSockets = module.parent.require('./socket.io/tools'),
+			async = require('async'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -41,25 +42,58 @@
 		}
 		// async call here, need data from installed plugins, and data from available, then when both
 		// are done, need to check if there are available plugins that are in the installed plugins list
+		var installed = {},
+			available = [];
 
-		// do search, no data to handle
-		search(query, function (err, data){
-			if (err){
-				if (debug) {
-					winston.error("Finder: Error: " + err);
+		async.parallel([
+			function(callback){  // find installed plugins
+				fs.readdir(path.join(__dirname, ".."), function(err, files){
+					if (err){
+						winston.error("Finder: Error reading directory");
+						callback(err);
+						return;
+					}
+					console.log(files);
+					for(var f = 0; f < files.length; f++){
+						installed[files[f]] = files[f];
+					}
+					callback();
+				});
+			},
+			function(callback){  // find available plugins
+				// do search, no data to handle
+				search(query, function (err, data){
+					if (err){
+						if (debug) {
+							winston.error("Finder: Error: " + err);
+						}
+						socketIndex.server.sockets.emit('event:finder.client.error', err);
+						callback(err);
+						return;
+					}
+					if(debug) { 
+						winston.info("Finder: server returning data"); 
+					}
+					available = data;
+
+					callback(); // signal done
+					
+				});
+			}], 
+			function (err){ // after completion
+				if (err){
+					winston.error(err);
+					return;
 				}
-				socketIndex.server.sockets.emit('event:finder.client.error', err);
-				return;
-			}
-			if(debug) { 
-				winston.info("Finder: server returning data"); 
-			}
-			// add field indicating installed or not
-			for (var i = 0; i < data.length; i++){
-
-			}
-			socketIndex.server.sockets.emit('event:finder.client.update', data);
-		});
+				console.log("installed object:");
+				console.log(installed);
+				console.log("===================================================================");
+				for (var i = 0; i < available.length; i++){
+					available[i].installed = (installed[available[i].name] !== undefined);
+				}
+				socketIndex.server.sockets.emit('event:finder.client.update', available);
+			});
+		
 	}
 
 	var Finder = {};
@@ -94,9 +128,9 @@
 		});
 	}
 
-	Finder.getScripts = function(scripts, callback){
-		return scripts.concat(['plugins/finder/js/vendor/jquery.dataTables.min.js']);
-	}
+	// Finder.getScripts = function(scripts, callback){
+	// 	return scripts.concat(['plugins/finder/js/vendor/jquery.dataTables.min.js']);
+	// }
 
 	module.exports = Finder;
 
