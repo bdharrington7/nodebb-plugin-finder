@@ -32,27 +32,16 @@
 		}),
 		query = ''; // all results
 		
-	// socketIndex.server.sockets.on('event:finder.server.update', function (noData) { // TODO: why isn't this registered?
-	// 	// do search, no data to handle
-	// 	search(query, function (err, data){
-	// 		if (err){
-	// 			if (debug) console.log ("Finder: Error: " + err);
-	// 			socketIndex.server.sockets.emit('event:finder.client.error', err);
-	// 			return;
-	// 		}
-	// 		if(debug) { console.log ("server returning data"); }
-	// 		socketIndex.server.sockets.emit('event:finder.client.update', data);
-	// 	});
-		
-	// });
-
-	// socketIndex.server.sockets.on('event:finder.debug', function(data){
-	// 	console.log(data);
-	// 	console.log("pong");
-	// });
+	
 
 	// message listener for the server
 	toolsSockets.finderUpdate = function(socket, data, options){ 
+		if (debug){
+			winston.info('Finder: update request received');
+		}
+		// async call here, need data from installed plugins, and data from available, then when both
+		// are done, need to check if there are available plugins that are in the installed plugins list
+
 		// do search, no data to handle
 		search(query, function (err, data){
 			if (err){
@@ -64,6 +53,10 @@
 			}
 			if(debug) { 
 				winston.info("Finder: server returning data"); 
+			}
+			// add field indicating installed or not
+			for (var i = 0; i < data.length; i++){
+
 			}
 			socketIndex.server.sockets.emit('event:finder.client.update', data);
 		});
@@ -99,6 +92,10 @@
 
 			callback(null, custom_routes);
 		});
+	}
+
+	Finder.getScripts = function(scripts, callback){
+		return scripts.concat(['plugins/finder/js/vendor/jquery.dataTables.min.js']);
 	}
 
 	module.exports = Finder;
