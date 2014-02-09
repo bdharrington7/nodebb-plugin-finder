@@ -85,9 +85,6 @@
 					winston.error(err);
 					return;
 				}
-				console.log("installed object:");
-				console.log(installed);
-				console.log("===================================================================");
 				for (var i = 0; i < available.length; i++){
 					available[i].installed = (installed[available[i].name] !== undefined);
 				}
@@ -128,9 +125,6 @@
 		});
 	}
 
-	// Finder.getScripts = function(scripts, callback){
-	// 	return scripts.concat(['plugins/finder/js/vendor/jquery.dataTables.min.js']);
-	// }
 
 	module.exports = Finder;
 
