@@ -5,38 +5,13 @@
 <form class="form">
 	<button class="btn btn-lg" id="update">Update</button>
 	<table id="dataContainer">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Version</th>
-				<th>Repository</th>
-			</tr>
+		<thead id = "dataHead">
 		</thead>
 		<tbody id="dataBody">
 		</tbody>
 
 	</table>
 	<div id="jsonDebug" />
-	<!-- <div class="form-group">
-		<label for="upload">
-			<input type="checkbox" data-field="nodebb-plugin-finder:options:upload" id="upload" />
-			Upload linked pictures automatically to the forum server
-		</label>
-		<div class="alert alert-warning">
-			<strong><i class="icon-warning-sign"></i> Careful!</strong>
-			<p>
-				Make sure you have enough disk space and bandwidth on your server before you enable this.
-			</p>
-		</div>
-	</div>
-	 TODO: make group to choose between uploading to the server, or imgur 
-	<div class="form-group">
-		<label for="extensions">
-			Allowed Extensions (comma separated, forum restart required)
-		</label>
-		<input class="form-control" placeholder="jpeg,jpg,gif,png" type="text" data-field="nodebb-plugin-finder:options:extensions" id="extensions" />
-	</div>
--->
 	<div style="display:none">
 		<button class="btn btn-lg btn-primary" id="save">Save</button> 
 	</div>
@@ -48,15 +23,63 @@
 	require(['forum/admin/settings'], function(Settings) {
 		Settings.prepare();
 	});
+
+	// initializae datatables
+	var table = $('#dataContainer');
 	// require.config({
 	// 	paths: {
-	// 		"datatables": "//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js"
+	// 		jqueryDt: "//code.jquery.com/jquery",
+	// 		foo: "//cdn.datatables.net/1.10-dev/js/jquery.dataTables"
+	// 	},
+	// 	shim: {
+	// 		'foo': ['jqueryDt']
+			
 	// 	}
-	// })
-	require(['//cdn.datatables.net/1.10-dev/js/jquery.dataTables.js'], function(){
-		var table = $('#dataContainer');
-		//table.dataTable();
-	});
+	// });
+	var columns = 
+		[
+			{
+				"sTitle": "Installed",
+				"mData": "installed",
+				"mRender": function(data, type, full){
+					if(data){ // installed
+						return '<button class="btn btn-sm btn-primary installBtn" id="' + full.name + '">Uninstall</button>'
+					} 
+					else {
+						return '<button class="btn btn-sm btn-warn installBtn" id="' + full.name + '">Install</button>'
+					}
+				}
+			},
+			{ 
+				"sTitle": "Name", 
+				"mData": "name"
+			},
+			{ 
+				"sTitle": "Description", 
+				"mData": "description"
+			},
+			{
+				"sTitle": "Repository",
+				"mData" : "repository",
+				"mRender": function(data, type, full){
+					if (data){
+						return '<a target="_blank" href="' + data.url + '">' + data.type + '</a>';
+					}
+					else {
+						return '';
+					}
+					
+				}
+			}
+
+		];
+
+	// require(['jqueryDt','foo'], function(){
+		
+	// 	table.dataTable({
+	// 		"aoColumns": columns
+	// 	});
+	// });
 	var finderDebug = true;
 
 	// define('datatables', ['//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js']);
@@ -75,7 +98,7 @@
 	// 	// })
 	// });
 	
-	var anchor = $('#dataBody');
+	var tbody = $('#dataBody');
 
 	$('#update').click(function(event){
 		event.preventDefault();
@@ -83,11 +106,18 @@
 		// fire off an event
 		socket.emit('tools.finderUpdate', {});
 	});
+
+	tbody.on("click", "tr td button", function(event){
+		event.preventDefault();
+		console.log("install button clicked: " + event.currentTarget.id);
+		//console.log(event);
+	});
 	socket.on ('event:finder.client.update', function (data){
 		// spew data here
 		$('#jsonDebug').html(JSON.stringify(data));
+		// populateTable(data);
+		// table.dataTable().fnAddData(data);
 		populateTable(data);
-		// $('#dataContainer').dataTable().fnAddData(data);
 	});
 	socket.on ('event:finder.client.error', function (err){
 		// show error message
@@ -95,18 +125,38 @@
 		console.log(err);
 	});
 
-	function populateTable(data){
-		anchor.html(''); // clear previous data
+	function populateTable(data){  // until datatables is working
+		tbody.html(''); // clear previous data
 		for (var i = 0; i < data.length; i++){
 			var row = data[i];
-			anchor.append("<tr>");
-			anchor.append("<td>").append(row.name).append("</td>");
-			anchor.append("<td>").append(row.versions[0]).append("</td>");
-			anchor.append("<td>").append(row.repository ? '<a href="' + data[i].repository.url + '">' + data[i].repository.type + '</a>' : '').append("</td>");
-			//anchor.append("<td>").append(data[i].name).append("</td>"); // installed?
-			anchor.append("</tr>");
+			var trow = "<tr>";
+			for (var col = 0; col < columns.length; col++){
+				trow += "<td>" + renderCell(row,columns[col]) + "</td>";
+			}
+			trow += "</tr>";
+			tbody.append(trow);
+			
 		}
 	}
+
+	function renderCell(row, column){
+		var data = row[column.mData];
+		if (column.mRender){
+			return(column.mRender(data, 'display', row));
+		}
+		else {
+			return data;
+		}
+	}
+
+	// add the table headers
+	var headerHtml = "<tr>";
+	for (var r = 0; r < columns.length; r ++){
+		headerHtml += "<th>" + columns[r].sTitle + "</th>";
+	}
+	headerHtml += "</tr>";
+	$('#dataHead').append(headerHtml);
+
 
 	// call the data on load
 	//socket.emit('tools.finderUpdate', {});
