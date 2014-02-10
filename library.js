@@ -42,10 +42,10 @@
 		child = exec("npm install " + data.id, function(error, stdout, stderr){
 			if (error){
 				winston.error(error);
-				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error});
+				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error, stdout: stdout, stderr: stderr });
 				return;
 			}
-			socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id });
+			socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id, stdout: stdout, stderr: stderr });
 		});
 		
 	}
@@ -53,7 +53,14 @@
 	toolsSockets.finderUninstall = function(socket, data, options){
 		winston.info("Uninstalling " + data.id);
 		console.log (data);
-		socketIndex.server.sockets.emit('event:finder.client.uninstalled', { id: data.id });
+		child = exec("npm uninstall " + data.id, function(error, stdout, stderr){
+			if (error){
+				winston.error(error);
+				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error, stdout: stdout, stderr: stderr });
+				return;
+			}
+			socketIndex.server.sockets.emit('event:finder.client.uninstalled', { id: data.id, stdout: stdout, stderr: stderr });
+		});
 	}
 
 	toolsSockets.finderUpdate = function(socket, data, options){
@@ -109,6 +116,22 @@
 				}
 				else if (getMethod == 'update') {
 					// TODO: do npm update
+					search.update(function(){
+						search(query, function (err, data){
+							if (err){
+								if (debug) {
+									winston.error("Finder: Error: " + err);
+								}
+								socketIndex.server.sockets.emit('event:finder.client.error', err);
+								callback(err);
+								return;
+							}
+							available = data;
+
+							callback(); // signal done
+							
+						});
+					});
 				}
 				else {
 					var error = "the method " + getMethod + " is not supported";

@@ -41,7 +41,7 @@
 		buttonInstallClass = "btn-primary",
 		buttonUninstallText = "Uninstall",
 		buttonUninstallClass = "btn-success",
-		finderDebug = true,
+		finderDebug = config.environment == 'development',
 		tbody = $('#dataBody'),
 		columns = 
 		[
@@ -122,6 +122,9 @@
 		//$('#jsonDebug').html(JSON.stringify(data));
 		// table.dataTable().fnAddData(data);
 		populateTable(data);
+		if(finderDebug){
+			console.log("List updated!");
+		}
 	});
 	socket.on ('event:finder.client.error', function (err){
 		// show error message
@@ -132,9 +135,18 @@
 	});
 	socket.on ('event:finder.client.installed', function(data){
 		$('#' + data.id).removeClass( buttonInstallClass ).addClass( buttonUninstallClass ).text( buttonUninstallText );
+		if (finderDebug){
+			console.log("Stdout: " + data.stdout);
+			console.log("Stderr: " + data.stderr);
+		}
+		
 	});
 	socket.on ('event:finder.client.uninstalled', function(data){
 		$('#' + data.id).removeClass( buttonUninstallClass ).addClass( buttonInstallClass ).text( buttonInstallText );
+		if (finderDebug){
+			console.log("Stdout: " + data.stdout);
+			console.log("Stderr: " + data.stderr);
+		}
 	});
 
 	function populateTable(data){  // until datatables is working

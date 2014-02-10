@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bdharrington7/nodebb-plugin-finder.git"
+    "url": "https://github.com/bdharrington7/nodebb-plugin-finder"
   },
   "keywords": [
     "nodebb",
@@ -23,8 +23,6 @@
     "url": "https://github.com/bdharrington7/nodebb-plugin-finder/issues"
   },  
   "dependencies": {
-    "path": "~1.1.36",
-    "mkdirp": "~0.3.0",
     "npm-package-search": "~0.1.0"
   }
 }
