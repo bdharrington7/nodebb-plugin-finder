@@ -1,9 +1,8 @@
 <h1>Plugin Finder</h1>
 
-<h3>Options</h3>
 
 <form class="form">
-	<button class="btn btn-lg" id="update">Update</button>
+	<button class="btn btn-lg" id="update">Update</button><div id="waitMessage"><h4>Updating...</h4></div>
 	<table id="dataContainer">
 		<thead id = "dataHead">
 		</thead>
@@ -18,18 +17,17 @@
 </form>
 
 
-
+<!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.3/spin.min.js"></script> -->
 <script type="text/javascript">
 	require(['forum/admin/settings'], function(Settings) {
 		Settings.prepare();
 	});
-
-	// initializae datatables
 	
-	// require.config({
+	// require.config({ 
 	// 	paths: {
 	// 		jqueryDt: "//code.jquery.com/jquery",
-	// 		foo: "//cdn.datatables.net/1.10-dev/js/jquery.dataTables"
+	// 		foo: "//cdn.datatables.net/1.10-dev/js/jquery.dataTables",
+	// 		spinner: "//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.3/spin.min.js"
 	// 	},
 	// 	shim: {
 	// 		'foo': ['jqueryDt']
@@ -43,6 +41,7 @@
 		buttonUninstallClass = "btn-success",
 		finderDebug = config.environment == 'development',
 		tbody = $('#dataBody'),
+		// spinner,
 		columns = 
 		[
 			{
@@ -81,6 +80,7 @@
 
 		];
 
+	// require(['//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.3/spin.min.js']);
 	// require(['jqueryDt','foo'], function(){
 		
 	// 	table.dataTable({
@@ -98,18 +98,23 @@
 	// 	console.log(main);
 	// });
 	
-	
+	var wait = $("#waitMessage");
 	
 
 	$('#update').click(function(event){
 		event.preventDefault();
-		if (finderDebug) console.log("Update button clicked");
+		wait.style.display = 'block';
+		if (finderDebug) {
+			console.log("Update button clicked");
+		}
 		socket.emit('tools.finderUpdate', {});
 	});
 
 	tbody.on("click", "tr td button", function(event){
 		event.preventDefault();
 		console.log("install button clicked: " + event.currentTarget.id + " " + event.currentTarget.textContent);
+		// spinner.spin();
+		wait.show();
 		if (event.currentTarget.textContent == buttonInstallText){
 			socket.emit('tools.finderInstall', { id: event.currentTarget.id });
 		}
@@ -122,12 +127,16 @@
 		//$('#jsonDebug').html(JSON.stringify(data));
 		// table.dataTable().fnAddData(data);
 		populateTable(data);
+		// spinner.stop();
+		wait.hide();
 		if(finderDebug){
 			console.log("List updated!");
 		}
 	});
 	socket.on ('event:finder.client.error', function (err){
 		// show error message
+		// spinner.stop();
+		wait.hide();
 		if (err.message){
 			alert("An error occurred: " + err.message);
 		}
@@ -139,6 +148,8 @@
 			console.log("Stdout: " + data.stdout);
 			console.log("Stderr: " + data.stderr);
 		}
+		// spinner.stop();
+		wait.hide();
 		
 	});
 	socket.on ('event:finder.client.uninstalled', function(data){
@@ -147,6 +158,8 @@
 			console.log("Stdout: " + data.stdout);
 			console.log("Stderr: " + data.stderr);
 		}
+		// spinner.stop();
+		wait.hide();
 	});
 
 	function populateTable(data){  // until datatables is working
@@ -186,6 +199,6 @@
 	socket.emit('tools.finderPopulate', {});
 </script>
 <!-- DataTables CSS -->
-<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+<!-- <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css"> -->
 <!-- DataTables -->
 <!-- <script type="text/javascript" charset="utf8" src="//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js"></script> -->
