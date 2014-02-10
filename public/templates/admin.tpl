@@ -103,16 +103,12 @@
 
 	$('#update').click(function(event){
 		event.preventDefault();
-		wait.style.display = 'block';
-		if (finderDebug) {
-			console.log("Update button clicked");
-		}
 		socket.emit('tools.finderUpdate', {});
+		wait.show();
 	});
 
 	tbody.on("click", "tr td button", function(event){
 		event.preventDefault();
-		console.log("install button clicked: " + event.currentTarget.id + " " + event.currentTarget.textContent);
 		// spinner.spin();
 		wait.show();
 		if (event.currentTarget.textContent == buttonInstallText){
