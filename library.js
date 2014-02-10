@@ -17,7 +17,7 @@
 		"name": "Finder",
 		"admin": {
 			"route": "/finder/",
-			"icon": "fa-th-large"
+			"icon": "fa-puzzle-piece"
 		}
 	});
 
