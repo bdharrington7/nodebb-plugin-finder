@@ -2,8 +2,6 @@
 
 #uploads
 node_modules
-# search library file
-npm.j*
 
 #################
 ## Eclipse
