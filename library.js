@@ -34,9 +34,29 @@
 		query = ''; // all results
 		
 	
+	toolsSockets.finderInstall = function(socket, data, options){
+		winston.info("Installing " + data.id);
+		console.log (data);
+		socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id });
+	}
+
+	toolsSockets.finderUninstall = function(socket, data, options){
+		winston.info("Uninstalling " + data.id);
+		console.log (data);
+		socketIndex.server.sockets.emit('event:finder.client.uninstalled', { id: data.id });
+	}
+
+	toolsSockets.finderUpdate = function(socket, data, options){
+		serverQuery(socket, data, options, 'update');
+	}
+
+	toolsSockets.finderPopulate = function(socket, data, options){
+		serverQuery(socket, data, options, 'fetch');
+	}
+
 
 	// message listener for the server
-	toolsSockets.finderUpdate = function(socket, data, options){ 
+	var serverQuery = function(socket, data, options, getMethod){ 
 		if (debug){
 			winston.info('Finder: update request received');
 		}
@@ -61,24 +81,34 @@
 				});
 			},
 			function(callback){  // find available plugins
-				// do search, no data to handle
-				search(query, function (err, data){
-					if (err){
-						if (debug) {
-							winston.error("Finder: Error: " + err);
+				if (getMethod == 'fetch'){
+					// do search, no data to handle
+					search(query, function (err, data){
+						if (err){
+							if (debug) {
+								winston.error("Finder: Error: " + err);
+							}
+							socketIndex.server.sockets.emit('event:finder.client.error', err);
+							callback(err);
+							return;
 						}
-						socketIndex.server.sockets.emit('event:finder.client.error', err);
-						callback(err);
-						return;
-					}
-					if(debug) { 
-						winston.info("Finder: server returning data"); 
-					}
-					available = data;
+						if(debug) { 
+							winston.info("Finder: server returning data"); 
+						}
+						available = data;
 
-					callback(); // signal done
-					
-				});
+						callback(); // signal done
+						
+					});
+				}
+				else if (getMethod == 'update') {
+					// TODO: do npm update
+				}
+				else {
+					var error = "the method " + getMethod + " is not supported";
+					socketIndex.server.sockets.emit('event:finder.client.error', error);
+					callback(error)
+				}
 			}], 
 			function (err){ // after completion
 				if (err){

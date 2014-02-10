@@ -25,7 +25,7 @@
 	});
 
 	// initializae datatables
-	var table = $('#dataContainer');
+	
 	// require.config({
 	// 	paths: {
 	// 		jqueryDt: "//code.jquery.com/jquery",
@@ -36,17 +36,24 @@
 			
 	// 	}
 	// });
-	var columns = 
+	var table = $('#dataContainer'),
+		buttonInstallText = "Install",
+		buttonInstallClass = "btn-primary",
+		buttonUninstallText = "Uninstall",
+		buttonUninstallClass = "btn-success",
+		finderDebug = true,
+		tbody = $('#dataBody'),
+		columns = 
 		[
 			{
 				"sTitle": "Installed",
 				"mData": "installed",
 				"mRender": function(data, type, full){
 					if(data){ // installed
-						return '<button class="btn btn-sm btn-primary installBtn" id="' + full.name + '">Uninstall</button>'
+						return '<button class="btn btn-sm installBtn ' + buttonUninstallClass + '" id="' + full.name + '">' + buttonUninstallText + '</button>'
 					} 
 					else {
-						return '<button class="btn btn-sm btn-warn installBtn" id="' + full.name + '">Install</button>'
+						return '<button class="btn btn-sm installBtn ' + buttonInstallClass +'" id="' + full.name + '">' + buttonInstallText + '</button>'
 					}
 				}
 			},
@@ -80,7 +87,7 @@
 	// 		"aoColumns": columns
 	// 	});
 	// });
-	var finderDebug = true;
+	
 
 	// define('datatables', ['//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js']);
 	// re
@@ -91,31 +98,28 @@
 	// 	console.log(main);
 	// });
 	
-	// $(document).ready(function(){
-	// 	//$('#dataContainer').dataTable();
-	// 	// requirejs(['plugins/finder/js/vendor/jquery.dataTables.min.js'], function(DataTables){
-	// 	// 	$('#dataContainer').dataTable();
-	// 	// })
-	// });
 	
-	var tbody = $('#dataBody');
+	
 
 	$('#update').click(function(event){
 		event.preventDefault();
 		if (finderDebug) console.log("Update button clicked");
-		// fire off an event
 		socket.emit('tools.finderUpdate', {});
 	});
 
 	tbody.on("click", "tr td button", function(event){
 		event.preventDefault();
-		console.log("install button clicked: " + event.currentTarget.id);
-		//console.log(event);
+		console.log("install button clicked: " + event.currentTarget.id + " " + event.currentTarget.textContent);
+		if (event.currentTarget.textContent == buttonInstallText){
+			socket.emit('tools.finderInstall', { id: event.currentTarget.id });
+		}
+		else if (event.currentTarget.textContent == buttonUninstallText){
+			socket.emit('tools.finderUninstall', { id: event.currentTarget.id });
+		}
 	});
 	socket.on ('event:finder.client.update', function (data){
 		// spew data here
-		$('#jsonDebug').html(JSON.stringify(data));
-		// populateTable(data);
+		//$('#jsonDebug').html(JSON.stringify(data));
 		// table.dataTable().fnAddData(data);
 		populateTable(data);
 	});
@@ -123,6 +127,12 @@
 		// show error message
 		alert("An error occurred, check the console");
 		console.log(err);
+	});
+	socket.on ('event:finder.client.installed', function(data){
+		$('#' + data.id).removeClass( buttonInstallClass ).addClass( buttonUninstallClass ).text( buttonUninstallText );
+	});
+	socket.on ('event:finder.client.uninstalled', function(data){
+		$('#' + data.id).removeClass( buttonUninstallClass ).addClass( buttonInstallClass ).text( buttonInstallText );
 	});
 
 	function populateTable(data){  // until datatables is working
@@ -159,7 +169,7 @@
 
 
 	// call the data on load
-	//socket.emit('tools.finderUpdate', {});
+	socket.emit('tools.finderPopulate', {});
 </script>
 <!-- DataTables CSS -->
 <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
