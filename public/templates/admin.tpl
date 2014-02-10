@@ -125,7 +125,9 @@
 	});
 	socket.on ('event:finder.client.error', function (err){
 		// show error message
-		alert("An error occurred, check the console");
+		if (err.message){
+			alert("An error occurred: " + err.message);
+		}
 		console.log(err);
 	});
 	socket.on ('event:finder.client.installed', function(data){

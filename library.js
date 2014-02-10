@@ -5,7 +5,9 @@
 	var		fs = require('fs'),
 			path = require('path'),
 			npmSearch = require('npm-package-search'),
+			child,
 			winston = require('winston'),
+			exec = require('child_process').exec,
 			socketIndex = module.parent.require('./socket.io/index'),
 			toolsSockets = module.parent.require('./socket.io/tools'),
 			async = require('async'),
@@ -34,10 +36,18 @@
 		query = ''; // all results
 		
 	
-	toolsSockets.finderInstall = function(socket, data, options){
+	toolsSockets.finderInstall = function(socket, data, options){ // TODO check message origin for security (i.e. admin)
 		winston.info("Installing " + data.id);
 		console.log (data);
-		socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id });
+		child = exec("npm install " + data.id, function(error, stdout, stderr){
+			if (error){
+				winston.error(error);
+				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error});
+				return;
+			}
+			socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id });
+		});
+		
 	}
 
 	toolsSockets.finderUninstall = function(socket, data, options){
@@ -73,7 +83,6 @@
 						callback(err);
 						return;
 					}
-					console.log(files);
 					for(var f = 0; f < files.length; f++){
 						installed[files[f]] = files[f];
 					}
@@ -91,9 +100,6 @@
 							socketIndex.server.sockets.emit('event:finder.client.error', err);
 							callback(err);
 							return;
-						}
-						if(debug) { 
-							winston.info("Finder: server returning data"); 
 						}
 						available = data;
 
@@ -117,6 +123,9 @@
 				}
 				for (var i = 0; i < available.length; i++){
 					available[i].installed = (installed[available[i].name] !== undefined);
+				}
+				if(debug) { 
+					winston.info("Finder: server returning data"); 
 				}
 				socketIndex.server.sockets.emit('event:finder.client.update', available);
 			});
