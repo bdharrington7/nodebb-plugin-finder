@@ -25,6 +25,7 @@
   "dependencies": {
     "winston": "~0.7.2",
     "async": "~0.2.8",
+    "semver": "~2.0.0",
     "npm-package-search": {
       "version": "0.1.0",
       "from": "npm-package-search@0.1.0",
