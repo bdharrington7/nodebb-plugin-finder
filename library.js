@@ -11,6 +11,7 @@
 			socketIndex = module.parent.require('./socket.io/index'),
 			toolsSockets = module.parent.require('./socket.io/tools'),
 			async = require('async'),
+			semver = require('semver'),
 			templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
@@ -79,7 +80,7 @@
 		}
 		// async call here, need data from installed plugins, and data from available, then when both
 		// are done, need to check if there are available plugins that are in the installed plugins list
-		var installed = {},
+		var installed = [],
 			available = [];
 
 		async.parallel([
@@ -90,9 +91,10 @@
 						callback(err);
 						return;
 					}
-					for(var f = 0; f < files.length; f++){
-						installed[files[f]] = files[f];
-					}
+					for (var i = files.length - 1; i >= 0; --i) {
+						installed[files[i]] = 'installed' // get version number here
+					};
+					
 					callback();
 				});
 			},
@@ -115,7 +117,6 @@
 					});
 				}
 				else if (getMethod == 'update') {
-					// TODO: do npm update
 					search.update(function(){
 						search(query, function (err, data){
 							if (err){
@@ -144,8 +145,32 @@
 					winston.error(err);
 					return;
 				}
-				for (var i = 0; i < available.length; i++){
-					available[i].installed = (installed[available[i].name] !== undefined);
+				// keep track of latest versions only
+				var seen = {};
+				for (i = available.length-1; i >= 0; --i){
+					var pkg = available[i];
+					if (!seen[pkg.name]){
+						seen[pkg.name] = pkg;
+						seen[pkg.name].ver = pkg["dist-tags"].latest;
+					}
+					else {
+						if (semver.gt(pkg["dist-tags"].latest, seen[pkg.name].ver)){
+							seen[pkg.name] = pkg;
+							seen[pkg.name].ver = pkg["dist-tags"].latest;
+						}
+					}
+				}
+				available = []; // clear out
+
+				var keys = Object.keys(seen)
+
+				for (var i = keys.length-1; i >= 0; --i){
+					if(installed[keys[i]]){
+						seen[keys[i]].installed = true;
+						// seen[keys[i]].upgradeable = semver.gt(seen[keys[i]].ver, installed[keys[i]].ver);
+					}
+					
+					available.push(seen[keys[i]]);
 				}
 				if(debug) { 
 					winston.info("Finder: server returning data"); 
