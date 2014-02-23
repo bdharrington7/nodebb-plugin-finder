@@ -1,18 +1,18 @@
 //library.js
 
 (function (module){
-	"use strict";
-	var		fs = require('fs'),
-			path = require('path'),
-			npmSearch = require('npm-package-search'),
-			child,
-			winston = require('winston'),
-			exec = require('child_process').exec,
-			socketIndex = module.parent.require('./socket.io/index'),
-			toolsSockets = module.parent.require('./socket.io/tools'),
-			async = require('async'),
-			semver = require('semver'),
-			templates = module.parent.require('../public/src/templates.js');
+	'use strict';
+	var	fs = require('fs'),
+		path = require('path'),
+		npmSearch = require('npm-package-search'),
+		child,
+		winston = require('winston'),
+		exec = require('child_process').exec,						// for calling npm install / uninstall
+		socketIndex = module.parent.require('./socket.io/index'), 	// signaling the client
+		toolsSockets = module.parent.require('./socket.io/tools'), 	// receiving signals from the client
+		async = require('async'),
+		semver = require('semver'),
+		templates = module.parent.require('../public/src/templates.js');
 
 	var constants = Object.freeze({
 		"name": "Finder",
@@ -22,25 +22,27 @@
 		}
 	});
 
-	var debug = process.env.NODE_ENV == 'development';
+	var debug = process.env.NODE_ENV === 'development';
+
+	var npmSearchOptions = {
+		filter: function npmFilter (record){  // show and save only nodebb plugins
+			if (record.name.indexOf('nodebb-plugin-') != -1){
+				return record;
+			}
+		},
+		interval: 1000 * 24 * 60 * 60 // one day
+	};
 
 	// path variables
-	var packageListFile = path.join(__dirname, "/npm.json"),
-		search = npmSearch(packageListFile, {
-			filter: function(record){  // show and save only nodebb plugins
-				if (record.name.indexOf('nodebb-plugin-') != -1){
-					return record;
-				}
-			},
-			interval: 1000 * 24 * 60 * 60 // one day
-		}),
+	var packageListFile = path.join(__dirname, '/npm.json'),
+		search = npmSearch(packageListFile, npmSearchOptions),
 		query = ''; // all results
 		
 	
 	toolsSockets.finderInstall = function(socket, data, options){ // TODO check message origin for security (i.e. admin)
-		winston.info("Installing " + data.id);
+		winston.info('Installing ' + data.id);
 		console.log (data);
-		child = exec("npm install " + data.id, function(error, stdout, stderr){
+		child = exec('npm install ' + data.id, function(error, stdout, stderr){
 			if (error){
 				winston.error(error);
 				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error, stdout: stdout, stderr: stderr });
@@ -48,13 +50,12 @@
 			}
 			socketIndex.server.sockets.emit('event:finder.client.installed', { id: data.id, stdout: stdout, stderr: stderr });
 		});
-		
-	}
+	};
 
 	toolsSockets.finderUninstall = function(socket, data, options){
-		winston.info("Uninstalling " + data.id);
+		winston.info('Uninstalling ' + data.id);
 		console.log (data);
-		child = exec("npm uninstall " + data.id, function(error, stdout, stderr){
+		child = exec('npm uninstall ' + data.id, function(error, stdout, stderr){
 			if (error){
 				winston.error(error);
 				socketIndex.server.sockets.emit('event:finder.client.error', { id: data.id, message: error, stdout: stdout, stderr: stderr });
@@ -62,15 +63,16 @@
 			}
 			socketIndex.server.sockets.emit('event:finder.client.uninstalled', { id: data.id, stdout: stdout, stderr: stderr });
 		});
-	}
+	};
 
+	// these functions allow us to call server functions from the client
 	toolsSockets.finderUpdate = function(socket, data, options){
 		serverQuery(socket, data, options, 'update');
-	}
+	};
 
 	toolsSockets.finderPopulate = function(socket, data, options){
 		serverQuery(socket, data, options, 'fetch');
-	}
+	};
 
 
 	// message listener for the server
@@ -85,7 +87,7 @@
 
 		async.parallel([
 			function(callback){  // find installed plugins
-				fs.readdir(path.join(__dirname, ".."), function(err, files){
+				fs.readdir(path.join(__dirname, '..'), function(err, files){
 					if (err){
 						winston.error("Finder: Error reading directory");
 						callback(err);
@@ -104,7 +106,7 @@
 					search(query, function (err, data){
 						if (err){
 							if (debug) {
-								winston.error("Finder: Error: " + err);
+								winston.error('Finder: Error: ' + err);
 							}
 							socketIndex.server.sockets.emit('event:finder.client.error', err);
 							callback(err);
@@ -121,7 +123,7 @@
 						search(query, function (err, data){
 							if (err){
 								if (debug) {
-									winston.error("Finder: Error: " + err);
+									winston.error('Finder: Error: ' + err);
 								}
 								socketIndex.server.sockets.emit('event:finder.client.error', err);
 								callback(err);
@@ -135,7 +137,7 @@
 					});
 				}
 				else {
-					var error = "the method " + getMethod + " is not supported";
+					var error = 'The method ' + getMethod + ' is not supported';
 					socketIndex.server.sockets.emit('event:finder.client.error', error);
 					callback(error)
 				}
@@ -151,18 +153,18 @@
 					var pkg = available[i];
 					if (!seen[pkg.name]){
 						seen[pkg.name] = pkg;
-						seen[pkg.name].ver = pkg["dist-tags"].latest;
+						seen[pkg.name].ver = pkg['dist-tags'].latest;
 					}
 					else {
-						if (semver.gt(pkg["dist-tags"].latest, seen[pkg.name].ver)){
+						if (semver.gt(pkg['dist-tags'].latest, seen[pkg.name].ver)){
 							seen[pkg.name] = pkg;
-							seen[pkg.name].ver = pkg["dist-tags"].latest;
+							seen[pkg.name].ver = pkg['dist-tags'].latest;
 						}
 					}
 				}
 				available = []; // clear out
 
-				var keys = Object.keys(seen)
+				var keys = Object.keys(seen);
 
 				for (var i = keys.length-1; i >= 0; --i){
 					if(installed[keys[i]]){
@@ -173,12 +175,12 @@
 					available.push(seen[keys[i]]);
 				}
 				if(debug) { 
-					winston.info("Finder: server returning data"); 
+					winston.info('Finder: server returning data'); 
 				}
 				socketIndex.server.sockets.emit('event:finder.client.update', available);
 			});
 		
-	}
+	}; // end fn serverQuery decl
 
 	var Finder = {};
 
@@ -188,12 +190,11 @@
 			"icon": constants.admin.icon,
 			"name": constants.name
 		});
-
 		return custom_header;
-	}
+	};
 
 	Finder.addRoute = function(custom_routes, callback){
-		fs.readFile(path.resolve(__dirname, "./public/templates/admin.tpl"), function (err, template){
+		fs.readFile(path.resolve(__dirname, './public/templates/admin.tpl'), function (err, template){
 			custom_routes.routes.push({
 				"route": constants.admin.route,
 				"method": "get",
@@ -210,7 +211,7 @@
 
 			callback(null, custom_routes);
 		});
-	}
+	};
 
 
 	module.exports = Finder;
