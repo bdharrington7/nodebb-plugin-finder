@@ -2,18 +2,28 @@
 
 
 <form class="form">
-	<button class="btn btn-lg" id="update">Update</button><div id="waitMessage"><h4>Updating...</h4></div>
-	<table id="dataContainer">
-		<thead id = "dataHead">
-		</thead>
-		<tbody id="dataBody">
-		</tbody>
+	<!-- <div> -->
+	<h3>Options</h3>
+		<div class="form-group">
+			<label for="autoUpdate">
+				<input type="checkbox" data-field="nodebb-plugin-finder:options:autoUpdate" id="autoUpdate" />
+				Update plugin list daily automatically
+			</label>
+		</div>
+		<button class="btn btn-lg btn-primary" id="save">Save</button>
+	<!-- </div>
+	<div> -->
+		<button class="btn btn-lg" id="update">Update</button><div id="waitMessage"><h4>Updating...</h4></div>
+		<table id="dataContainer">
+			<thead id = "dataHead">
+			</thead>
+			<tbody id="dataBody">
+			</tbody>
 
-	</table>
+		</table>
+	<!-- </div> -->
 	<div id="jsonDebug" />
-	<div style="display:none">
-		<button class="btn btn-lg btn-primary" id="save">Save</button> 
-	</div>
+	
 </form>
 
 

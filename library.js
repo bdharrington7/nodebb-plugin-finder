@@ -4,6 +4,7 @@
 	'use strict';
 	var	fs = require('fs'),
 		path = require('path'),
+		meta = module.parent.require('./meta'), // settings
 		npmSearch = require('npm-package-search'),
 		child,
 		winston = require('winston'),
@@ -19,10 +20,31 @@
 		"admin": {
 			"route": "/finder/",
 			"icon": "fa-puzzle-piece"
-		}
+		},
+		"namespace": "nodebb-plugin-finder"
 	});
 
 	var debug = process.env.NODE_ENV === 'development';
+
+	// takes any form of truth and returns boolean value
+	function isTrue(value){
+		if (typeof(value) == 'string'){
+			value = value.toLowerCase();
+		}
+		switch(value){
+			case true:
+			case "true":
+			case 1:
+			case "1":
+			case "on":
+			case "yes":
+				return true;
+			default: 
+				return false;
+		}
+	}
+
+	var updateInterval = isTrue(meta.config[constants.namespace + ':options:autoUpdate']) ? 1000 * 24 * 60 * 60: undefined; // one day
 
 	var npmSearchOptions = {
 		filter: function npmFilter (record){  // show and save only nodebb plugins
@@ -30,7 +52,7 @@
 				return record;
 			}
 		},
-		interval: 1000 * 24 * 60 * 60 // one day
+		interval: updateInterval
 	};
 
 	// path variables
