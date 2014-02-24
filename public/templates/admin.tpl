@@ -2,18 +2,25 @@
 
 
 <form class="form">
-	<!-- <div> -->
 	<h3>Options</h3>
 		<div class="form-group">
 			<label for="autoUpdate">
 				<input type="checkbox" data-field="nodebb-plugin-finder:options:autoUpdate" id="autoUpdate" />
-				Update plugin list daily automatically
+				Update plugin list daily automatically (change requires restart, update will occur every 24 hours on restart time)
 			</label>
 		</div>
-		<button class="btn btn-lg btn-primary" id="save">Save</button>
-	<!-- </div>
-	<div> -->
-		<button class="btn btn-lg" id="update">Update</button><div id="waitMessage"><h4>Updating...</h4></div>
+		<button class="btn btn-med btn-primary" id="save">Save</button>
+	<h3>Available Plugins:</h3>
+		<table>
+		<tr>
+			<td>
+			<button class="btn btn-lg btn-warning" id="update">Update</button>
+			</td>
+			<td>
+			<div id="waitMessage"><h4>Updating...</h4></div>
+			</td>
+		</tr>
+		</table>
 		<table id="dataContainer">
 			<thead id = "dataHead">
 			</thead>
@@ -45,10 +52,11 @@
 	// 	}
 	// });
 	var table = $('#dataContainer'),
-		buttonInstallText = "Install",
-		buttonInstallClass = "btn-primary",
-		buttonUninstallText = "Uninstall",
-		buttonUninstallClass = "btn-success",
+		buttonInstallText = 'Install',
+		buttonInstallClass = 'btn-primary',
+		buttonUninstallText = 'Uninstall',
+		buttonUninstallClass = 'btn-success',
+		installProgressClass = 'btn-warning',
 		finderDebug = config.environment == 'development',
 		tbody = $('#dataBody'),
 		// spinner,
@@ -108,7 +116,7 @@
 	// 	console.log(main);
 	// });
 	
-	var wait = $("#waitMessage");
+	var wait = $('#waitMessage');
 	
 
 	$('#update').click(function(event){
@@ -117,16 +125,21 @@
 		wait.show();
 	});
 
-	tbody.on("click", "tr td button", function(event){
+	tbody.on('click', 'tr td button', function(event){
 		event.preventDefault();
 		// spinner.spin();
 		wait.show();
-		if (event.currentTarget.textContent == buttonInstallText){
+		var currentButton = $(event.currentTarget);
+		if (currentButton.text() == buttonInstallText){
 			socket.emit('tools.finderInstall', { id: event.currentTarget.id });
+			currentButton.removeClass( buttonInstallClass );
 		}
-		else if (event.currentTarget.textContent == buttonUninstallText){
+		else if (currentButton.text() == buttonUninstallText){
 			socket.emit('tools.finderUninstall', { id: event.currentTarget.id });
+			currentButton.removeClass( buttonUninstallClass );
 		}
+		currentButton.text(currentButton.text() + 'ing...');
+		currentButton.addClass( installProgressClass );
 	});
 	socket.on ('event:finder.client.update', function (data){
 		// spew data here
@@ -136,7 +149,7 @@
 		// spinner.stop();
 		wait.hide();
 		if(finderDebug){
-			console.log("List updated!");
+			console.log('List updated!');
 		}
 	});
 	socket.on ('event:finder.client.error', function (err){
@@ -144,25 +157,25 @@
 		// spinner.stop();
 		wait.hide();
 		if (err.message){
-			alert("An error occurred: " + err.message);
+			alert('An error occurred: ' + err.message);
 		}
 		console.log(err);
 	});
 	socket.on ('event:finder.client.installed', function(data){
-		$('#' + data.id).removeClass( buttonInstallClass ).addClass( buttonUninstallClass ).text( buttonUninstallText );
+		$('#' + data.id).removeClass( installProgressClass ).addClass( buttonUninstallClass ).text( buttonUninstallText );
 		if (finderDebug){
-			console.log("Stdout: " + data.stdout);
-			console.log("Stderr: " + data.stderr);
+			console.log('Stdout: ' + data.stdout);
+			console.log('Stderr: ' + data.stderr);
 		}
 		// spinner.stop();
 		wait.hide();
 		
 	});
 	socket.on ('event:finder.client.uninstalled', function(data){
-		$('#' + data.id).removeClass( buttonUninstallClass ).addClass( buttonInstallClass ).text( buttonInstallText );
+		$('#' + data.id).removeClass( installProgressClass ).addClass( buttonInstallClass ).text( buttonInstallText );
 		if (finderDebug){
-			console.log("Stdout: " + data.stdout);
-			console.log("Stderr: " + data.stderr);
+			console.log('Stdout: ' + data.stdout);
+			console.log('Stderr: ' + data.stderr);
 		}
 		// spinner.stop();
 		wait.hide();
@@ -172,11 +185,11 @@
 		tbody.html(''); // clear previous data
 		for (var i = 0; i < data.length; i++){
 			var row = data[i];
-			var trow = "<tr>";
+			var trow = '<tr>';
 			for (var col = 0; col < columns.length; col++){
-				trow += "<td>" + renderCell(row,columns[col]) + "</td>";
+				trow += '<td>' + renderCell(row,columns[col]) + '</td>';
 			}
-			trow += "</tr>";
+			trow += '</tr>';
 			tbody.append(trow);
 			
 		}
@@ -193,11 +206,11 @@
 	}
 
 	// add the table headers
-	var headerHtml = "<tr>";
+	var headerHtml = '<tr>';
 	for (var r = 0; r < columns.length; r ++){
-		headerHtml += "<th>" + columns[r].sTitle + "</th>";
+		headerHtml += '<th>' + columns[r].sTitle + '</th>';
 	}
-	headerHtml += "</tr>";
+	headerHtml += '</tr>';
 	$('#dataHead').append(headerHtml);
 
 
