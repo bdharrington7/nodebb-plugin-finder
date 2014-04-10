@@ -3,12 +3,14 @@
 	"name": "Finder",
 	"description": "Finds plugins for the NodeBB platform and makes installation easy",
 	"url": "https://github.com/bdharrington7/nodebb-plugin-finder",
-	"library": "./library.js", 
+	"library": "./library.js",
 	"staticDirs": {
 		"finder": "./public"
 	},
+	"templates": "./public/templates",
 	"hooks": [
-		{ "hook": "filter:admin.header.build", "method": "registerPlugin", "callbacked": false },
-		{ "hook": "filter:admin.create_routes", "method": "addRoute", "callbacked": true }
-	]
+		{ "hook": "action:app.load", "method": "init" },
+		{ "hook": "filter:admin.header.build", "method": "admin.menu" }
+	],
+	"minver": "0.4.0"
 }

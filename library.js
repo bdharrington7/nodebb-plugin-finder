@@ -18,7 +18,7 @@
 	var constants = Object.freeze({
 		"name": "Finder",
 		"admin": {
-			"route": "/finder/",
+			"route": "/plugins/finder/",
 			"icon": "fa-puzzle-piece"
 		},
 		"namespace": "nodebb-plugin-finder"
@@ -39,7 +39,7 @@
 			case "on":
 			case "yes":
 				return true;
-			default: 
+			default:
 				return false;
 		}
 	}
@@ -59,8 +59,8 @@
 	var packageListFile = path.join(__dirname, '/npm.json'),
 		search = npmSearch(packageListFile, npmSearchOptions),
 		query = ''; // all results
-		
-	
+
+
 	toolsSockets.finderInstall = function(socket, data, options){ // TODO check message origin for security (i.e. admin)
 		winston.info('Installing ' + data.id);
 		console.log (data);
@@ -98,7 +98,7 @@
 
 
 	// message listener for the server
-	var serverQuery = function(socket, data, options, getMethod){ 
+	var serverQuery = function(socket, data, options, getMethod){
 		if (debug){
 			winston.info('Finder: update request received');
 		}
@@ -118,7 +118,7 @@
 					for (var i = files.length - 1; i >= 0; --i) {
 						installed[files[i]] = 'installed' // get version number here
 					};
-					
+
 					callback();
 				});
 			},
@@ -137,7 +137,7 @@
 						available = data;
 
 						callback(); // signal done
-						
+
 					});
 				}
 				else if (getMethod == 'update') {
@@ -154,7 +154,7 @@
 							available = data;
 
 							callback(); // signal done
-							
+
 						});
 					});
 				}
@@ -163,7 +163,7 @@
 					socketIndex.server.sockets.emit('event:finder.client.error', error);
 					callback(error)
 				}
-			}], 
+			}],
 			function (err){ // after completion
 				if (err){
 					winston.error(err);
@@ -193,48 +193,38 @@
 						seen[keys[i]].installed = true;
 						// seen[keys[i]].upgradeable = semver.gt(seen[keys[i]].ver, installed[keys[i]].ver);
 					}
-					
+
 					available.push(seen[keys[i]]);
 				}
-				if(debug) { 
-					winston.info('Finder: server returning data'); 
+				if(debug) {
+					winston.info('Finder: server returning data');
 				}
 				socketIndex.server.sockets.emit('event:finder.client.update', available);
 			});
-		
+
 	}; // end fn serverQuery decl
 
 	var Finder = {};
 
-	Finder.registerPlugin = function(custom_header, callback){
-		custom_header.plugins.push({
-			"route": constants.admin.route,
-			"icon": constants.admin.icon,
-			"name": constants.name
-		});
-		return custom_header;
+	Finder.init = function(app, middleware, controllers){
+		function renderAdminPage(req, res, next){
+			res.render('admin', {});
+		}
+
+		app.get('/admin/plugins/finder', middleware.admin.buildHeader, renderAdminPage);
+		app.get('/api/admin/plugins/finder', renderAdminPage);
 	};
 
-	Finder.addRoute = function(custom_routes, callback){
-		fs.readFile(path.resolve(__dirname, './public/templates/admin.tpl'), function (err, template){
-			custom_routes.routes.push({
-				"route": constants.admin.route,
-				"method": "get",
-				"options": function (req, res, callback) {
-					callback({
-						req: req,
-						res: res,
-						route: constants.admin.route,
-						name: constants.name,
-						content: template
-					});
-				}
+	Finder.admin = {
+		menu: function(custom_header, callback){
+			custom_header.plugins.push({
+				"route": "/plugins/finder",
+				"icon": constants.admin.icon,
+				"name": constants.name
 			});
-
-			callback(null, custom_routes);
-		});
+			return custom_header;
+		}
 	};
-
 
 	module.exports = Finder;
 

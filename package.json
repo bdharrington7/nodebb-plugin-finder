@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-finder",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "finds plugins that you can install for NodeBB",
   "main": "library.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "dependencies": {
     "winston": "~0.7.2",
     "async": "~0.2.8",
-    "semver": "~2.0.0",
+    "semver": ">=2.0.0",
     "npm-package-search": ">=0.1.x"
   },
   "homepage": "https://github.com/bdharrington7/nodebb-plugin-finder",
