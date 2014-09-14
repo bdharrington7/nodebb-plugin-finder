@@ -30,7 +30,7 @@
 		</table>
 	<!-- </div> -->
 	<div id="jsonDebug" />
-	
+
 </form>
 
 
@@ -39,8 +39,8 @@
 	require(['forum/admin/settings'], function(Settings) {
 		Settings.prepare();
 	});
-	
-	// require.config({ 
+
+	// require.config({
 	// 	paths: {
 	// 		jqueryDt: "//code.jquery.com/jquery",
 	// 		foo: "//cdn.datatables.net/1.10-dev/js/jquery.dataTables",
@@ -48,7 +48,7 @@
 	// 	},
 	// 	shim: {
 	// 		'foo': ['jqueryDt']
-			
+
 	// 	}
 	// });
 	var table = $('#dataContainer'),
@@ -60,7 +60,7 @@
 		finderDebug = config.environment == 'development',
 		tbody = $('#dataBody'),
 		// spinner,
-		columns = 
+		columns =
 		[
 			{
 				"sTitle": "Installed",
@@ -68,18 +68,18 @@
 				"mRender": function(data, type, full){
 					if(data){ // installed
 						return '<button class="btn btn-sm installBtn ' + buttonUninstallClass + '" id="' + full.name + '">' + buttonUninstallText + '</button>'
-					} 
+					}
 					else {
 						return '<button class="btn btn-sm installBtn ' + buttonInstallClass +'" id="' + full.name + '">' + buttonInstallText + '</button>'
 					}
 				}
 			},
-			{ 
-				"sTitle": "Name", 
+			{
+				"sTitle": "Name",
 				"mData": "name"
 			},
-			{ 
-				"sTitle": "Description", 
+			{
+				"sTitle": "Description",
 				"mData": "description"
 			},
 			{
@@ -92,7 +92,7 @@
 					else {
 						return '';
 					}
-					
+
 				}
 			}
 
@@ -100,12 +100,12 @@
 
 	// require(['//cdnjs.cloudflare.com/ajax/libs/spin.js/1.3.3/spin.min.js']);
 	// require(['jqueryDt','foo'], function(){
-		
+
 	// 	table.dataTable({
 	// 		"aoColumns": columns
 	// 	});
 	// });
-	
+
 
 	// define('datatables', ['//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js']);
 	// re
@@ -115,13 +115,13 @@
 	// 	console.log("Main loaded");
 	// 	console.log(main);
 	// });
-	
+
 	var wait = $('#waitMessage');
-	
+
 
 	$('#update').click(function(event){
 		event.preventDefault();
-		socket.emit('tools.finderUpdate', {});
+		socket.emit('plugins.finderUpdate', {});
 		wait.show();
 	});
 
@@ -131,11 +131,11 @@
 		wait.show();
 		var currentButton = $(event.currentTarget);
 		if (currentButton.text() == buttonInstallText){
-			socket.emit('tools.finderInstall', { id: event.currentTarget.id });
+			socket.emit('plugins.finderInstall', { id: event.currentTarget.id });
 			currentButton.removeClass( buttonInstallClass );
 		}
 		else if (currentButton.text() == buttonUninstallText){
-			socket.emit('tools.finderUninstall', { id: event.currentTarget.id });
+			socket.emit('plugins.finderUninstall', { id: event.currentTarget.id });
 			currentButton.removeClass( buttonUninstallClass );
 		}
 		currentButton.text(currentButton.text() + 'ing...');
@@ -169,7 +169,7 @@
 		}
 		// spinner.stop();
 		wait.hide();
-		
+
 	});
 	socket.on ('event:finder.client.uninstalled', function(data){
 		$('#' + data.id).removeClass( installProgressClass ).addClass( buttonInstallClass ).text( buttonInstallText );
@@ -191,7 +191,7 @@
 			}
 			trow += '</tr>';
 			tbody.append(trow);
-			
+
 		}
 	}
 
@@ -215,7 +215,7 @@
 
 
 	// call the data on load
-	socket.emit('tools.finderPopulate', {});
+	socket.emit('plugins.finderPopulate', {});
 </script>
 <!-- DataTables CSS -->
 <!-- <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css"> -->

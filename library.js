@@ -8,9 +8,9 @@
 		npmSearch = require('npm-package-search'),
 		child,
 		winston = require('winston'),
-		exec = require('child_process').exec,						// for calling npm install / uninstall
+		exec = require('child_process').exec,				// for calling npm install / uninstall
 		socketIndex = module.parent.require('./socket.io/index'), 	// signaling the client
-		toolsSockets = module.parent.require('./socket.io/tools'), 	// receiving signals from the client
+		pluginsSockets = module.parent.require('./socket.io/plugins'), 	// receiving signals from the client
 		async = require('async'),
 		semver = require('semver'),
 		templates = module.parent.require('../public/src/templates.js');
@@ -23,6 +23,8 @@
 		},
 		"namespace": "nodebb-plugin-finder"
 	});
+
+	winston.warn('*** DEPRECATED: nodebb-plugin-finder: The function of this plugin has been implemented in the core platform');
 
 	var debug = process.env.NODE_ENV === 'development';
 
@@ -61,7 +63,7 @@
 		query = ''; // all results
 
 
-	toolsSockets.finderInstall = function(socket, data, options){ // TODO check message origin for security (i.e. admin)
+	pluginsSockets.finderInstall = function(socket, data, options){ // TODO check message origin for security (i.e. admin)
 		winston.info('Installing ' + data.id);
 		console.log (data);
 		child = exec('npm install ' + data.id, function(error, stdout, stderr){
@@ -74,7 +76,7 @@
 		});
 	};
 
-	toolsSockets.finderUninstall = function(socket, data, options){
+	pluginsSockets.finderUninstall = function(socket, data, options){
 		winston.info('Uninstalling ' + data.id);
 		console.log (data);
 		child = exec('npm uninstall ' + data.id, function(error, stdout, stderr){
@@ -88,11 +90,11 @@
 	};
 
 	// these functions allow us to call server functions from the client
-	toolsSockets.finderUpdate = function(socket, data, options){
+	pluginsSockets.finderUpdate = function(socket, data, options){
 		serverQuery(socket, data, options, 'update');
 	};
 
-	toolsSockets.finderPopulate = function(socket, data, options){
+	pluginsSockets.finderPopulate = function(socket, data, options){
 		serverQuery(socket, data, options, 'fetch');
 	};
 

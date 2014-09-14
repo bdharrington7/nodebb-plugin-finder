@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-finder",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "finds plugins that you can install for NodeBB",
   "main": "library.js",
   "scripts": {

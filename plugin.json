@@ -9,8 +9,8 @@
 	},
 	"templates": "./public/templates",
 	"hooks": [
-		{ "hook": "action:app.load", "method": "init" },
-		{ "hook": "filter:admin.header.build", "method": "admin.menu" }
+		{ "hook": "filter:admin.header.build", "method": "admin.menu" },
+		{ "hook": "action:app.load", "method": "init" }
 	],
-	"minver": "0.4.0"
+	"minver": "0.4.3"
 }

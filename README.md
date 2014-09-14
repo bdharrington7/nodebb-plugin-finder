@@ -1,6 +1,6 @@
 nodebb-plugin-finder
 ====================
-
+(DEPRECATED: As of NodeBB 0.4.1+, this function has become part of core, removing the need for this plugin. It will remain available for installations at 0.4.0 and below.) 
 One plugin to find them...
 and in the darkness install them.
 
