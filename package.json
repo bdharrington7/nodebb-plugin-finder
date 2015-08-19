@@ -29,7 +29,7 @@
     "npm-package-search": ">=0.1.x"
   },
   "homepage": "https://github.com/bdharrington7/nodebb-plugin-finder",
-  "devDependencies": {}
+  "devDependencies": {},
   "nbbpm": {
     "compatibility": "<=0.4.0"
   }
