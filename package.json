@@ -30,4 +30,7 @@
   },
   "homepage": "https://github.com/bdharrington7/nodebb-plugin-finder",
   "devDependencies": {}
+  "nbbpm": {
+    "compatibility": "<=0.4.0"
+  }
 }
